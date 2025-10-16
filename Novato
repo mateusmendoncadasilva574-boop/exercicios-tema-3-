@@ -1,0 +1,133 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define TAMANHO_FILA 5  // Número fixo de peças na fila
+
+// Estrutura que representa uma peça
+typedef struct {
+    char nome;  // Tipo da peça ('I', 'O', 'T', 'L')
+    int id;     // Identificador único
+} Peca;
+
+// Estrutura da fila
+typedef struct {
+    Peca pecas[TAMANHO_FILA];
+    int frente;
+    int tras;
+    int quantidade;
+} Fila;
+
+// Função para inicializar a fila
+void inicializarFila(Fila *fila) {
+    fila->frente = 0;
+    fila->tras = -1;
+    fila->quantidade = 0;
+}
+
+// Verifica se a fila está cheia
+int filaCheia(Fila *fila) {
+    return fila->quantidade == TAMANHO_FILA;
+}
+
+// Verifica se a fila está vazia
+int filaVazia(Fila *fila) {
+    return fila->quantidade == 0;
+}
+
+// Gera uma nova peça automaticamente
+Peca gerarPeca(int id) {
+    Peca nova;
+    char tipos[] = {'I', 'O', 'T', 'L'};
+    nova.nome = tipos[rand() % 4];  // Escolhe tipo aleatório
+    nova.id = id;
+    return nova;
+}
+
+// Insere nova peça (enqueue)
+void inserirPeca(Fila *fila, Peca nova) {
+    if (filaCheia(fila)) {
+        printf("\n⚠️ A fila está cheia! Não é possível inserir mais peças.\n");
+        return;
+    }
+    fila->tras = (fila->tras + 1) % TAMANHO_FILA;
+    fila->pecas[fila->tras] = nova;
+    fila->quantidade++;
+}
+
+// Remove uma peça (dequeue)
+Peca jogarPeca(Fila *fila) {
+    Peca removida = {'-', -1};
+    if (filaVazia(fila)) {
+        printf("\n⚠️ A fila está vazia! Nenhuma peça para jogar.\n");
+        return removida;
+    }
+    removida = fila->pecas[fila->frente];
+    fila->frente = (fila->frente + 1) % TAMANHO_FILA;
+    fila->quantidade--;
+    return removida;
+}
+
+// Exibe o estado atual da fila
+void exibirFila(Fila *fila) {
+    printf("\nFila de peças:\n");
+    if (filaVazia(fila)) {
+        printf("(vazia)\n");
+        return;
+    }
+
+    int i, pos = fila->frente;
+    for (i = 0; i < fila->quantidade; i++) {
+        printf("[%c %d] ", fila->pecas[pos].nome, fila->pecas[pos].id);
+        pos = (pos + 1) % TAMANHO_FILA;
+    }
+    printf("\n");
+}
+
+int main() {
+    Fila fila;
+    int opcao, contador = 0;
+    Peca p;
+
+    srand(time(NULL)); // Garante aleatoriedade
+
+    inicializarFila(&fila);
+
+    // Inicializa com 5 peças
+    for (int i = 0; i < TAMANHO_FILA; i++) {
+        inserirPeca(&fila, gerarPeca(contador++));
+    }
+
+    do {
+        exibirFila(&fila);
+
+        printf("\nOpções de ação:\n");
+        printf("1 - Jogar peça (dequeue)\n");
+        printf("2 - Inserir nova peça (enqueue)\n");
+        printf("0 - Sair\n");
+        printf("Escolha: ");
+        scanf("%d", &opcao);
+
+        switch (opcao) {
+            case 1:
+                p = jogarPeca(&fila);
+                if (p.id != -1)
+                    printf("➡️ Peça jogada: [%c %d]\n", p.nome, p.id);
+                break;
+            case 2:
+                p = gerarPeca(contador++);
+                inserirPeca(&fila, p);
+                printf("✅ Peça inserida: [%c %d]\n", p.nome, p.id);
+                break;
+            case 0:
+                printf("\nEncerrando o jogo...\n");
+                break;
+            default:
+                printf("❌ Opção inválida!\n");
+        }
+
+    } while (opcao != 0);
+
+    return 0;
+}
+
